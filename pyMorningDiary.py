@@ -12,22 +12,30 @@ class Diary(Frame):
         self.frame = Frame(self)
         self.frame.pack(side=LEFT, expand=YES, fill=BOTH)
         self.grid(row=0, column=0)
+
+        self.TITLE_1x1 = '人生梦想'
+        self.TITLE_1x2 = '工作、同事'
+        self.TITLE_1x3 = '家庭、亲戚'
+        self.TITLE_2x1 = '金钱、理财'
+        self.TITLE_2x3 = '健康、运动'
+        self.TITLE_3x1 = '兴趣、爱好'
+        self.TITLE_3x2 = '朋友、同学'
+        self.TITLE_3x3 = '娱乐、其他'
+
         self.create_widgets()
 
     def create_widgets(self):
-        Button(self.frame, text='say "Hello"', command=self.say_hello).grid(row=0, column=0)
-        Button(self.frame, text='say "你好"', command=self.say_hello_chs).grid(row=0, column=1)
-        Button(self.frame, text='Print', command=self.prt).grid(row=0, column=2)
-        self.dc1 = DiaryCell(self.frame, TITLE_1x1, 'blue')
+        DateNavigator(self.frame).grid(row=0, column=0, columnspan=3)
+        self.dc1 = DiaryCell(self.frame, self.TITLE_1x1, 'blue')
         self.dc1.grid(row=1, column=0)
-        DiaryCell(self.frame, TITLE_1x2, 'green').grid(row=1, column=1)
-        DiaryCell(self.frame, TITLE_1x3, 'red').grid(row=1, column=2)
-        DiaryCell(self.frame, TITLE_2x1, 'yellow').grid(row=2, column=0)
+        DiaryCell(self.frame, self.TITLE_1x2, 'green').grid(row=1, column=1)
+        DiaryCell(self.frame, self.TITLE_1x3, 'red').grid(row=1, column=2)
+        DiaryCell(self.frame, self.TITLE_2x1, 'yellow').grid(row=2, column=0)
         DiaryMeta(self.frame).grid(row=2, column=1)
-        DiaryCell(self.frame, TITLE_2x3, 'blue').grid(row=2, column=2)
-        DiaryCell(self.frame, TITLE_3x1, 'green').grid(row=3, column=0)
-        DiaryCell(self.frame, TITLE_3x2, 'red').grid(row=3, column=1)
-        DiaryCell(self.frame, TITLE_3x3, 'yellow').grid(row=3, column=2)
+        DiaryCell(self.frame, self.TITLE_2x3, 'blue').grid(row=2, column=2)
+        DiaryCell(self.frame, self.TITLE_3x1, 'green').grid(row=3, column=0)
+        DiaryCell(self.frame, self.TITLE_3x2, 'red').grid(row=3, column=1)
+        DiaryCell(self.frame, self.TITLE_3x3, 'yellow').grid(row=3, column=2)
 
     def say_hello(self):
         self.dc1.set_text('Hello')
@@ -48,9 +56,9 @@ class DiaryCell(Frame):
         self.title = title
         self.bg_color = bg_color
 
-        self.title_var = StringVar()
-        self.title_var.set(self.title)
-        self.lbl_title = Label(self.frame, textvariable=self.title_var,
+        self.TITLE_var = StringVar()
+        self.TITLE_var.set(self.title)
+        self.lbl_title = Label(self.frame, textvariable=self.TITLE_var,
             bd=3, bg=self.bg_color)
         self.lbl_title.grid(row=0, column=0, sticky='EW')
         self.txt_cell = Text(self.frame, height=12, width=35, bd=3,
@@ -58,10 +66,10 @@ class DiaryCell(Frame):
         self.txt_cell.grid(row=1, column=0, sticky='EW')
 
     def get_title(self):
-        return self.title_var.get()
+        return self.TITLE_var.get()
 
     def set_title(self, str_title):
-        self.title_var.set(str_title)
+        self.TITLE_var.set(str_title)
 
     def get_text(self):
         return self.txt_cell.get(0.0, END)
@@ -78,80 +86,140 @@ class DiaryMeta(Frame):
         self.frame = Frame(self)
         self.frame.pack(side=LEFT, expand=YES, fill=BOTH)
 
-        Label(self.frame, text=WEATHER).grid(row=0, column=0, sticky='E')
+        self.WEATHER = '天气'
+        self.TEMPERATURE = '温度'
+        self.HUMIDITY = '湿度'
+        self.FESTIVAL = '节日'
+        self.COMMOMERATION = '纪念日'
+        self.MEET = '邂逅日'
+        self.BIRTHDAY = '诞生日'
+        self.SLEEP = '睡觉时间'
+        self.GETUP = '起床时间'
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        Label(self.frame, text=self.WEATHER).grid(row=0, column=0, sticky='E')
         self.weather_var = StringVar()
         self.weather_var.set('')
         Entry(self.frame, textvariable=self.weather_var).grid(row=0, column=1)
 
-        Label(self.frame, text=TEMPERATURE).grid(row=1, column=0, sticky='E')
+        Label(self.frame, text=self.TEMPERATURE).grid(
+            row=1, column=0, sticky='E')
         self.temp_var = StringVar()
         self.temp_var.set('')
         Entry(self.frame, textvariable=self.temp_var).grid(row=1, column=1)
 
-        Label(self.frame, text=HUMIDITY).grid(row=2, column=0, sticky='E')
+        Label(self.frame, text=self.HUMIDITY).grid(row=2, column=0, sticky='E')
         self.humidity_var = StringVar()
         self.humidity_var.set('')
         Entry(self.frame, textvariable=self.humidity_var).grid(row=2, column=1)
 
-        Label(self.frame, text=FESTIVAL).grid(row=3, column=0, sticky='E')
+        Label(self.frame, text=self.FESTIVAL).grid(row=3, column=0, sticky='E')
         self.festival_var = StringVar()
         self.festival_var.set('')
         Entry(self.frame, textvariable=self.festival_var).grid(row=3, column=1)
 
-        Label(self.frame, text=COMMOMERATION).grid(row=4, column=0, sticky='E')
+        Label(self.frame, text=self.COMMOMERATION).grid(
+            row=4, column=0, sticky='E')
         self.commomeration_var = StringVar()
         self.commomeration_var.set('')
         Entry(self.frame, textvariable=self.commomeration_var).grid(
             row=4, column=1)
 
-        Label(self.frame, text=MEET).grid(row=5, column=0, sticky='E')
+        Label(self.frame, text=self.MEET).grid(row=5, column=0, sticky='E')
         self.meet_var = StringVar()
         self.meet_var.set('')
         Entry(self.frame, textvariable=self.meet_var).grid(row=5, column=1)
 
-        Label(self.frame, text=BIRTHDAY).grid(row=6, column=0, sticky='E')
+        Label(self.frame, text=self.BIRTHDAY).grid(row=6, column=0, sticky='E')
         self.birthday_var = StringVar()
         self.birthday_var.set('')
         Entry(self.frame, textvariable=self.birthday_var).grid(row=6, column=1)
 
-        Label(self.frame, text=SLEEP).grid(row=7, column=0, sticky='E')
+        Label(self.frame, text=self.SLEEP).grid(row=7, column=0, sticky='E')
         self.sleep_var = StringVar()
         self.sleep_var.set('')
         Entry(self.frame, textvariable=self.sleep_var).grid(row=7, column=1)
 
-        Label(self.frame, text=GETUP).grid(row=8, column=0, sticky='E')
+        Label(self.frame, text=self.GETUP).grid(row=8, column=0, sticky='E')
         self.getup_var = StringVar()
         self.getup_var.set('')
         Entry(self.frame, textvariable=self.getup_var).grid(row=8, column=1)
 
 
-class Calendar(Frame):
+class DateNavigator(Frame):
 
     def __init__(self, parent):
         Frame.__init__(self, parent)
         self.frame = Frame(self)
         self.frame.pack(side=LEFT, expand=YES, fill=BOTH)
 
+        self.PREV_YEAR = '去年'
+        self.PREV_MONTH = '上个月'
+        self.PREV_WEEK = '上星期'
+        self.PREV_DAY = '昨天'
+        self.NEXT_YEAR = '明年'
+        self.NEXT_MONTH = '下个月'
+        self.NEXT_WEEK = '下星期'
+        self.NEXT_DAY = '明天'
+        self.TODAY = '今天'
 
+        self.create_widgets()
 
-TITLE_1x1 = '人生梦想'
-TITLE_1x2 = '工作、同事'
-TITLE_1x3 = '家庭、亲戚'
-TITLE_2x1 = '金钱、理财'
-TITLE_2x3 = '健康、运动'
-TITLE_3x1 = '兴趣、爱好'
-TITLE_3x2 = '朋友、同学'
-TITLE_3x3 = '娱乐、其他'
+    def create_widgets(self):
 
-WEATHER = '天气'
-TEMPERATURE = '温度'
-HUMIDITY = '湿度'
-FESTIVAL = '节日'
-COMMOMERATION = '纪念日'
-MEET = '邂逅日'
-BIRTHDAY = '诞生日'
-SLEEP = '睡觉时间'
-GETUP = '起床时间'
+        Button(self.frame, text=self.TODAY, command=self.goto_today).grid(
+            row=0, column=4)
+
+        Button(self.frame, text=self.PREV_YEAR,
+            command=self.goto_prev_year).grid(row=1, column=0)
+        Button(self.frame, text=self.PREV_MONTH,
+            command=self.goto_prev_month).grid(row=1, column=1)
+        Button(self.frame, text=self.PREV_WEEK,
+            command=self.goto_prev_week).grid(row=1, column=2)
+        Button(self.frame, text=self.PREV_DAY,
+            command=self.goto_prev_day).grid(row=1, column=3)
+
+        self.date_var = StringVar()
+        Entry(self.frame, textvariable=self.date_var, width=10).grid(
+            row=1, column=4)
+
+        Button(self.frame, text=self.NEXT_DAY,
+            command=self.goto_next_day).grid(row=1, column=5)
+        Button(self.frame, text=self.NEXT_WEEK,
+            command=self.goto_next_week).grid(row=1, column=6)
+        Button(self.frame, text=self.NEXT_MONTH,
+            command=self.goto_next_month).grid(row=1, column=7)
+        Button(self.frame, text=self.NEXT_YEAR,
+            command=self.goto_next_year).grid(row=1, column=8)
+
+    def goto_today(self):
+        pass
+
+    def goto_prev_year(self):
+        pass
+
+    def goto_prev_month(self):
+        pass
+
+    def goto_prev_week(self):
+        pass
+
+    def goto_prev_day(self):
+        pass
+
+    def goto_next_year(self):
+        pass
+
+    def goto_next_month(self):
+        pass
+
+    def goto_next_week(self):
+        pass
+
+    def goto_next_day(self):
+        pass
 
 
 if __name__ == '__main__':
