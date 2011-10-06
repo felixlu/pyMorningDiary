@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 from tkinter import Tk, Frame, StringVar, Label, Text, Entry, LEFT, YES, \
-    BOTH, END, Button
+    BOTH, END, Button, colorchooser
+
+from dlgCalendar import tkCalendar
 
 
 class Diary(Frame):
@@ -14,13 +15,13 @@ class Diary(Frame):
         self.grid(row=0, column=0)
 
         self.TITLE_1x1 = '人生梦想'
-        self.TITLE_1x2 = '工作、同事'
-        self.TITLE_1x3 = '家庭、亲戚'
-        self.TITLE_2x1 = '金钱、理财'
-        self.TITLE_2x3 = '健康、运动'
-        self.TITLE_3x1 = '兴趣、爱好'
-        self.TITLE_3x2 = '朋友、同学'
-        self.TITLE_3x3 = '娱乐、其他'
+        self.TITLE_1x2 = '工作'
+        self.TITLE_1x3 = '家庭'
+        self.TITLE_2x1 = '金钱'
+        self.TITLE_2x3 = '健康'
+        self.TITLE_3x1 = '兴趣'
+        self.TITLE_3x2 = '人际关系'
+        self.TITLE_3x3 = '娱乐及其他'
 
         self.create_widgets()
 
@@ -59,11 +60,18 @@ class DiaryCell(Frame):
         self.TITLE_var = StringVar()
         self.TITLE_var.set(self.title)
         self.lbl_title = Label(self.frame, textvariable=self.TITLE_var,
-            bd=3, bg=self.bg_color)
-        self.lbl_title.grid(row=0, column=0, sticky='EW')
-        self.txt_cell = Text(self.frame, height=12, width=35, bd=3,
             bg=self.bg_color)
-        self.txt_cell.grid(row=1, column=0, sticky='EW')
+        self.lbl_title.grid(row=0, column=0, sticky='EW')
+
+        #self.btn_color = Button(self.frame, text='Change Color',
+        #    command=self.change_color)
+        #self.btn_color.grid(row=0, column=1)
+
+        self.txt_cell = Text(self.frame, height=12, width=35,
+            bg=self.bg_color)
+        self.txt_cell.grid(row=1, column=0, sticky='EWSN')
+        self.txt_cell.bind("<FocusIn>", self.focus_in)
+        self.txt_cell.bind("<FocusOut>", self.focus_out)
 
     def get_title(self):
         return self.TITLE_var.get()
@@ -77,6 +85,19 @@ class DiaryCell(Frame):
     def set_text(self, str_text):
         self.txt_cell.delete(0.0, END)
         self.txt_cell.insert(END, str_text)
+
+    def change_color(self):
+        self.bg_color = colorchooser.askcolor(self.bg_color)[-1]
+        self.lbl_title.configure(bg=self.bg_color)
+        self.txt_cell.configure(bg=self.bg_color)
+
+    def focus_in(self, event):
+        # 自动查出往年的历史日记
+        pass
+
+    def focus_out(self, event):
+        # 自动保存
+        pass
 
 
 class DiaryMeta(Frame):
