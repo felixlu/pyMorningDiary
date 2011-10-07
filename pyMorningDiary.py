@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 
+from datetime import date
+import sqlite3
 import tkinter as tk
 import tkinter.colorchooser as tkcolorchooser
 import dlgCalendar
 
+# date.today()
+# d.isoformat()
+# d.toordinal()
+# d.fromordinal()
 
-class Diary(tk.Frame):
+class DiaryUI(tk.Frame):
 
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
@@ -19,32 +25,94 @@ class Diary(tk.Frame):
         self.COLORS = ['#e4fd82', '#affeff', '#fefebb',
             '#d9fefe', '#52c8ff',
             '#fd97b4', '#6bf6a6', '#d287f9']
+        self.PANE_ROW = 2      # Diary Pane row offset
+        self.POSITIONS = [(self.PANE_ROW, 0), (self.PANE_ROW, 1),
+            (self.PANE_ROW, 2), (self.PANE_ROW + 1, 0),
+            (self.PANE_ROW + 1, 2), (self.PANE_ROW + 2, 0),
+            (self.PANE_ROW + 2, 1), (self.PANE_ROW + 2, 2)]
+        self.DIARYPANES = []
 
         self.create_widgets()
 
     def create_widgets(self):
 
-        DateNavigator(self.frame).grid(row=0, column=0, columnspan=3)
-        self.dc1 = DiaryCell(self.frame, self.TITLES[0], self.COLORS[0])
-        self.dc1.grid(row=1, column=0)
-        DiaryCell(self.frame, self.TITLES[1], self.COLORS[1]).grid(
-            row=1, column=1)
-        DiaryCell(self.frame, self.TITLES[2], self.COLORS[2]).grid(
-            row=1, column=2)
-        DiaryCell(self.frame, self.TITLES[3], self.COLORS[3]).grid(
-            row=2, column=0)
-        DiaryInfo(self.frame).grid(row=2, column=1)
-        DiaryCell(self.frame, self.TITLES[4], self.COLORS[4]).grid(
-            row=2, column=2)
-        DiaryCell(self.frame, self.TITLES[5], self.COLORS[5]).grid(
-            row=3, column=0)
-        DiaryCell(self.frame, self.TITLES[6], self.COLORS[6]).grid(
-            row=3, column=1)
-        DiaryCell(self.frame, self.TITLES[7], self.COLORS[7]).grid(
-            row=3, column=2)
+        DiaryMenu(self.frame).grid(row=0, column=0, columnspan=3, sticky='WE')
+        DateNavigator(self.frame).grid(row=1, column=0, columnspan=3)
+        DiaryInfo(self.frame).grid(row=self.PANE_ROW + 1, column=1)
+
+        for i in range(8):
+            self.DIARYPANES.append(DiaryPane(self.frame,
+                self.TITLES[i], self.COLORS[i]))
+            self.DIARYPANES[i].grid(row=self.POSITIONS[i][0],
+                column=self.POSITIONS[i][1])
+
+class DiaryMenu(tk.Frame):
+
+    def __init__(self, parent):
+        tk.Frame.__init__(self, parent)
+        self.menubar = tk.Frame(self, relief=tk.RAISED, bd=1)
+        self.menubar.pack(fill=tk.X)
+
+        self.FILE = '文件'
+        self.BACKUPDB = '备份数据文件'
+        self.EXIT = '退出'
+        self.GOTO = '转到'
+        self.NEXT_10YEARS = '下十年这天'
+        self.PREV_10YEARS = '上十年这天'
+        self.NEXT_YEAR = '下一年这天'
+        self.PREV_YEAR = '上一年这天'
+        self.NEXT_MONTH = '下个月这天'
+        self.PREV_MONTH = '上个月这天'
+        self.NEXT_WEEK = '下星期这天'
+        self.PREV_WEEK = '上星期这天'
+        self.NEXT_DAY = '后一天'
+        self.PREV_DAY = '前一天'
+
+        self.btn_file = tk.Menubutton(self.menubar, text=self.FILE)
+        self.btn_file.pack(side=tk.LEFT)
+        self.btn_file.menu = tk.Menu(self.btn_file)
+        self.btn_file.configure(menu=self.btn_file.menu)
+        self.btn_file.menu.add_command(label=self.BACKUPDB,
+            command=self.backupdb)
+        self.btn_file.menu.add_command(label=self.EXIT, command=self.exit_app)
+
+        self.btn_goto = tk.Menubutton(self.menubar, text=self.GOTO)
+        self.btn_goto.pack(side=tk.LEFT)
+        self.btn_goto.menu = tk.Menu(self.btn_goto)
+        self.btn_goto.configure(menu=self.btn_goto.menu)
+        self.btn_goto.menu.add_command(label=self.NEXT_DAY,
+            command=self.todo_method)
+        self.btn_goto.menu.add_command(label=self.PREV_DAY,
+            command=self.todo_method)
+        self.btn_goto.menu.add_command(label=self.NEXT_WEEK,
+            command=self.todo_method)
+        self.btn_goto.menu.add_command(label=self.PREV_WEEK,
+            command=self.todo_method)
+        self.btn_goto.menu.add_command(label=self.NEXT_MONTH,
+            command=self.todo_method)
+        self.btn_goto.menu.add_command(label=self.PREV_MONTH,
+            command=self.todo_method)
+        self.btn_goto.menu.add_command(label=self.NEXT_YEAR,
+            command=self.todo_method)
+        self.btn_goto.menu.add_command(label=self.PREV_YEAR,
+            command=self.todo_method)
+        self.btn_goto.menu.add_command(label=self.NEXT_10YEARS,
+            command=self.todo_method)
+        self.btn_goto.menu.add_command(label=self.PREV_10YEARS,
+            command=self.todo_method)
+
+    def backupdb(self):
+        pass
+
+    def exit_app(self):
+        pass
+
+    def todo_method(self):
+        # TODO
+        pass
 
 
-class DiaryCell(tk.Frame):
+class DiaryPane(tk.Frame):
 
     def __init__(self, parent, title, bg_color):
         tk.Frame.__init__(self, parent)
@@ -217,6 +285,7 @@ class DateNavigator(tk.Frame):
         # TODO: 弹出日期选择框，选定日期后刷新显示日记，及该日期的周年纪念信息
         dlgCalendar.tkCalendar(self.frame, 2011, 10, 6, self.date_var)
 
+
     def search(self):
         pass
 
@@ -224,8 +293,29 @@ class DateNavigator(tk.Frame):
         pass
 
 
+class SQLiteUtil:
+
+    def __init__():
+        db_name = '.pyMorningDiary.db'
+        db_path = os.path.join(os.path.expanduser('~'), db_name)
+
+        needs_init = False
+        if not os.path.isfile(db_path):
+            needs_init = True
+
+        con = sqlite3.connect(db_path)
+        con.isolation_level = None
+        cur = con.cursor()
+
+        if needs_init:
+            try:
+                init_db(con, cur)
+            except Exception as e:
+                print(e)
+
+
 if __name__ == '__main__':
     app = tk.Tk()
     app.title('晨间日记 - pyMorningDiary')
-    diary = Diary(app)
+    diary = DiaryUI(app)
     app.mainloop()
