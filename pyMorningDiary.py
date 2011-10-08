@@ -11,7 +11,7 @@ import dlgCalendar
 # d.toordinal()
 # d.fromordinal()
 
-class DiaryUI(tk.Frame):
+class UIDiary(tk.Frame):
 
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
@@ -36,47 +36,65 @@ class DiaryUI(tk.Frame):
 
     def create_widgets(self):
 
-        DiaryMenu(self.frame).grid(row=0, column=0, columnspan=3, sticky='WE')
-        DateNavigator(self.frame).grid(row=1, column=0, columnspan=3)
-        DiaryInfo(self.frame).grid(row=self.PANE_ROW + 1, column=1)
+        UIDiaryMenu(self.frame).grid(row=0, column=0, columnspan=3, sticky='WE')
+        UIDateNavigator(self.frame).grid(row=1, column=0, columnspan=3)
+        UIDiaryInfo(self.frame).grid(row=self.PANE_ROW + 1, column=1)
 
         for i in range(8):
-            self.DIARYPANES.append(DiaryPane(self.frame,
+            self.DIARYPANES.append(UIDiaryPane(self.frame,
                 self.TITLES[i], self.COLORS[i]))
             self.DIARYPANES[i].grid(row=self.POSITIONS[i][0],
                 column=self.POSITIONS[i][1])
 
-class DiaryMenu(tk.Frame):
+
+class UIDiaryMenu(tk.Frame):
 
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
         self.menubar = tk.Frame(self, relief=tk.RAISED, bd=1)
         self.menubar.pack(fill=tk.X)
 
-        self.FILE = '文件'
-        self.BACKUPDB = '备份数据文件'
-        self.EXIT = '退出'
-        self.GOTO = '转到'
+        self.FILE = '文件(F)'
+        self.SAVE = '保存(S)'
+        self.DELETE = '删除(D)'
+        self.BACKUPDB = '备份数据文件(B)'
+        self.EXIT = '退出(X)  Alt+F4'
+
+        self.GOTO = '转到(G)'
         self.NEXT_10YEARS = '下十年这天'
         self.PREV_10YEARS = '上十年这天'
-        self.NEXT_YEAR = '下一年这天'
-        self.PREV_YEAR = '上一年这天'
+        self.NEXT_YEAR = '下一年这天  Ctrl+PgDown'
+        self.PREV_YEAR = '上一年这天  Ctrl+PgUp'
         self.NEXT_MONTH = '下个月这天'
         self.PREV_MONTH = '上个月这天'
         self.NEXT_WEEK = '下星期这天'
         self.PREV_WEEK = '上星期这天'
-        self.NEXT_DAY = '后一天'
-        self.PREV_DAY = '前一天'
+        self.NEXT_DAY = '后一天  PgDown'
+        self.PREV_DAY = '前一天  PgUp'
 
-        self.btn_file = tk.Menubutton(self.menubar, text=self.FILE)
+        self.TOOL = '工具(T)'
+        self.OPTION = '选项(O)'
+
+        self.HELP = '帮助(H)'
+        self.HELP_F1 = '帮助  F1'
+        self.ABOUT = '关于(A)'
+
+        self.btn_file = tk.Menubutton(self.menubar, text=self.FILE,
+            underline=3)
         self.btn_file.pack(side=tk.LEFT)
         self.btn_file.menu = tk.Menu(self.btn_file)
         self.btn_file.configure(menu=self.btn_file.menu)
+        self.btn_file.menu.add_command(label=self.SAVE,
+            command=self.todo_method, underline=3)
+        self.btn_file.menu.add_command(label=self.DELETE,
+            command=self.todo_method, underline=3)
         self.btn_file.menu.add_command(label=self.BACKUPDB,
-            command=self.backupdb)
-        self.btn_file.menu.add_command(label=self.EXIT, command=self.exit_app)
+            command=self.backupdb, underline=7)
+        self.btn_file.menu.add_command(label=self.EXIT, command=self.exit_app,
+            underline=3)
 
-        self.btn_goto = tk.Menubutton(self.menubar, text=self.GOTO)
+        self.btn_goto = tk.Menubutton(self.menubar, text=self.GOTO,
+            underline=3)
         self.btn_goto.pack(side=tk.LEFT)
         self.btn_goto.menu = tk.Menu(self.btn_goto)
         self.btn_goto.configure(menu=self.btn_goto.menu)
@@ -101,6 +119,24 @@ class DiaryMenu(tk.Frame):
         self.btn_goto.menu.add_command(label=self.PREV_10YEARS,
             command=self.todo_method)
 
+        self.btn_tool = tk.Menubutton(self.menubar, text=self.TOOL,
+            underline=3)
+        self.btn_tool.pack(side=tk.LEFT)
+        self.btn_tool.menu = tk.Menu(self.btn_tool)
+        self.btn_tool.configure(menu=self.btn_tool.menu)
+        self.btn_tool.menu.add_command(label=self.OPTION,
+            command=self.todo_method, underline=3)
+
+        self.btn_help = tk.Menubutton(self.menubar, text=self.HELP,
+            underline=3)
+        self.btn_help.pack(side=tk.LEFT)
+        self.btn_help.menu = tk.Menu(self.btn_help)
+        self.btn_help.configure(menu=self.btn_help.menu)
+        self.btn_help.menu.add_command(label=self.HELP_F1,
+            command=self.todo_method)
+        self.btn_help.menu.add_command(label=self.ABOUT,
+            command=self.todo_method, underline=3)
+
     def backupdb(self):
         pass
 
@@ -112,7 +148,7 @@ class DiaryMenu(tk.Frame):
         pass
 
 
-class DiaryPane(tk.Frame):
+class UIDiaryPane(tk.Frame):
 
     def __init__(self, parent, title, bg_color):
         tk.Frame.__init__(self, parent)
@@ -164,7 +200,7 @@ class DiaryPane(tk.Frame):
         pass
 
 
-class DiaryInfo(tk.Frame):
+class UIDiaryInfo(tk.Frame):
 
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
@@ -241,7 +277,7 @@ class DiaryInfo(tk.Frame):
         tk.Entry(self.frame, textvariable=self.getup_var).grid(row=8, column=1)
 
 
-class DateNavigator(tk.Frame):
+class UIDateNavigator(tk.Frame):
 
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
@@ -282,9 +318,8 @@ class DateNavigator(tk.Frame):
         pass
 
     def goto_date(self, event):
-        # TODO: 弹出日期选择框，选定日期后刷新显示日记，及该日期的周年纪念信息
         dlgCalendar.tkCalendar(self.frame, 2011, 10, 6, self.date_var)
-
+        # TODO: 在上一个界面中选定日期后刷新显示日记，及该日期的周年纪念信息
 
     def search(self):
         pass
@@ -293,29 +328,97 @@ class DateNavigator(tk.Frame):
         pass
 
 
-class SQLiteUtil:
+class DBSQLite:
 
-    def __init__():
-        db_name = '.pyMorningDiary.db'
-        db_path = os.path.join(os.path.expanduser('~'), db_name)
+    def __init__(self, db_name='.pyMorningDiary.db'):
+        self.db_name = db_name
+        self.db_path = os.path.join(os.path.expanduser('~'), db_name)
 
-        needs_init = False
-        if not os.path.isfile(db_path):
-            needs_init = True
+        self.needs_init = False
+        if not os.path.isfile(self.db_path):
+            self.needs_init = True
 
-        con = sqlite3.connect(db_path)
-        con.isolation_level = None
-        cur = con.cursor()
+        self.con = sqlite3.connect(self.db_path)
+        self.con.isolation_level = None
+        self.cur = self.con.cursor()
 
-        if needs_init:
+        if self.needs_init:
             try:
-                init_db(con, cur)
+                self.init_db()
             except Exception as e:
                 print(e)
+
+    def init_db(self):
+        self.cur.execute("""
+            CREATE TABLE PANESETTING (
+                ID              INTEGER PRIMARY KEY AUTOINCREMENT,
+                P_INDEX         INTEGER,
+                COLOR           TEXT,
+                TITLE           TEXT
+            );
+            CREATE TABLE DIARY (
+                ID              INTEGER PRIMARY KEY AUTOINCREMENT,
+                DATE            TEXT,
+                D_INDEX         INTEGER,
+                TITLE           TEXT,
+                CONTENT         TEXT
+            );
+            CREATE TABLE DIARYINFO (
+                ID              INTEGER PRIMARY KEY AUTOINCREMENT,
+                DATE            TEXT,
+                WEATHER         TEXT,
+                TEMPERATURE     REAL,
+                HUMIDITY        REAL,
+                SLEEP_TIME      TEXT,
+                GET_UP_TIME     TEXT,
+                FESTIVAL        TEXT,
+                COMMEMORATION   TEXT,
+                MEET_WITH       TEXT,
+                BIRTHDAY_OF     TEXT
+            );
+        """)
+        self.con.commit()
+
+    def insert_diary(self, date, diary_index, title, content):
+        pass
+
+    def update_diary(self, date, diary_index, title, content):
+        pass
+
+    def delete_diary(self, date):
+        pass
+
+    def insert_diary_info(self, date, **infos):
+        for key, info in infos:
+            if key in ('weather', 'temperature', 'humidity', 'sleep_time',
+                'get_up_time', 'festival', 'commemoration', 'meet_with',
+                'birthday_of'):
+                    self.cur.execute("""
+                        INSERT INTO DIARYINFO (DATE, ?)
+                        VALUES
+                        (?, ?)
+                    """, (key, date, info))
+        self.con.commit()
+
+    def update_diary_info(self, date, **infos):
+        for key, info in infos:
+            if key in ('weather', 'temperature', 'humidity', 'sleep_time',
+                'get_up_time', 'festival', 'commemoration', 'meet_with',
+                'birthday_of'):
+                    self.cur.execute("""
+                        UPDATE DIARYINFO SET
+                        ?=?
+                        WHERE
+                        DATE=?
+                    """, (key, info, date))
+        self.con.commit()
+
+    def delete_diary_info(self, date):
+        pass
 
 
 if __name__ == '__main__':
     app = tk.Tk()
     app.title('晨间日记 - pyMorningDiary')
-    diary = DiaryUI(app)
+    diary = UIDiary(app)
     app.mainloop()
