@@ -1,45 +1,42 @@
 #!/usr/bin/env python3
 #Author : Camilo Olarte|colarte@telesat.com.co|Sept.2003
-#Modifier: Felix Lu | lugh82@gmail.com | Sept.2011
+#Modifier: Felix Lu | lugh82@gmail.com | Oct.2011
 
-#import sys
-#import string
 import calendar
-import tkinter
+import tkinter as tk
 import time
 
 calendar.setfirstweekday(calendar.SUNDAY)
 year = time.localtime()[0]
 month = time.localtime()[1]
-day =time.localtime()[2]
+day = time.localtime()[2]
 DATE_DELIMITER = '-'
 strdate = (str(year) + DATE_DELIMITER + \
     '{0:0>2}'.format(str(month)) + DATE_DELIMITER + \
     '{0:0>2}'.format(str(day)))
 
-tk = tkinter
+fntTitle = ("Times", 10, 'bold')
+fntHeader = ("Times", 11)
+fntCal = ("Times", 10)
 
-fnta = ("Times", 12)
-fnt = ("Times", 14)
-fntc = ("Times", 18, 'bold')
+lang = "zh"
+# lang = "zh"
+# else lang = "en"
 
-lang="engl"
-#lang = "span" #else lang="engl"
-
-if lang == "span":
-    #Spanish Options
-    strtitle = "Calendario"
-    strdays= "Do  Lu  Ma  Mi  Ju  Vi  Sa"
-    dictmonths = {'1': 'Ene', '2': 'Feb', '3': 'Mar', '4': 'Abr', '5': 'May',
-    '6': 'Jun', '7': 'Jul', '8': 'Ago', '9': 'Sep', '10': 'Oct', '11': 'Nov',
-    '12': 'Dic'}
+if lang == "zh":
+    # Chinese Options
+    strtitle = "选择日期"
+    strdays= "日  一  二  三  四  五  六"
+    dictmonths = {'1': '一月', '2': '二月', '3': '三月', '4': '四月', '5': '五月',
+        '6': '六月', '7': '七月', '8': '八月', '9': '九月', '10': '十月',
+        '11': '十一月', '12': '十二月'}
 else:
-    #English Options
+    # English Options
     strtitle = "Calendar"
     strdays = "Su  Mo  Tu  We  Th  Fr  Sa"
     dictmonths = {'1': 'Jan', '2': 'Feb', '3': 'Mar', '4': 'Apr', '5': 'May',
-    '6': 'Jun', '7': 'Jul', '8': 'Aug', '9': 'Sep', '10': 'Oct', '11': 'Nov',
-    '12': 'Dec'}
+        '6': 'Jun', '7': 'Jul', '8': 'Aug', '9': 'Sep', '10': 'Oct',
+        '11': 'Nov', '12': 'Dec'}
 
 ##############################################
 #  BEGIN CLASS
@@ -57,14 +54,14 @@ class tkCalendar:
         self.canvas =tk.Canvas(top, width=200, height=220,
             relief=tk.RIDGE, background="white", borderwidth=1)
         self.canvas.create_rectangle(0, 0, 303, 30, fill="#a4cae8", width=0)
-        self.canvas.create_text(100, 17, text=strtitle, font=fntc,
+        self.canvas.create_text(100, 17, text=strtitle, font=fntTitle,
             fill="#2024d6")
         stryear = str(arg_year)
 
         self.year_var = tk.StringVar()
         self.year_var.set(stryear)
         self.lblYear = tk.Label(top, textvariable=self.year_var,
-            font=fnta, background="white")
+            font=fntHeader, background="white")
         self.lblYear.place(x=85, y=30)
 
         self.month_var = tk.StringVar()
@@ -73,17 +70,17 @@ class tkCalendar:
         self.month_var.set(strmonth)
 
         self.lblYear = tk.Label(top, textvariable=self.month_var,
-            font=fnta, background="white")
+            font=fntHeader, background="white")
         self.lblYear.place(x=85, y=50)
         #Variable muy usada
         tagBaseButton = "Arrow"
         self.tagBaseNumber = "DayButton"
         #draw year arrows
-        x, y = 40, 43
+        x, y = 30, 43
         tagThisButton = "leftyear"
         tagFinalThisButton = tuple((tagBaseButton, tagThisButton))
         self.fnCreateLeftArrow(self.canvas, x, y, tagFinalThisButton)
-        x, y = 150, 43
+        x, y = 160, 43
         tagThisButton = "rightyear"
         tagFinalThisButton = tuple((tagBaseButton, tagThisButton))
         self.fnCreateRightArrow(self.canvas, x, y, tagFinalThisButton)
@@ -97,7 +94,7 @@ class tkCalendar:
         tagFinalThisButton = tuple((tagBaseButton, tagThisButton))
         self.fnCreateRightArrow(self.canvas, x, y, tagFinalThisButton)
         #Print days
-        self.canvas.create_text(100, 90, text=strdays, font=fnta)
+        self.canvas.create_text(100, 90, text=strdays, font=fntHeader)
         self.canvas.pack(expand=1, fill=tk.BOTH)
         self.canvas.tag_bind("Arrow", "<ButtonRelease-1>", self.fnClick)
         self.canvas.tag_bind("Arrow", "<Enter>", self.fnOnMouseOver)
@@ -176,7 +173,7 @@ class tkCalendar:
                 else:
                     tagNumber = tuple((self.tagBaseNumber, stritem))
                     self.canvas.create_text(xpos, ypos, text=stritem,
-                        font=fnta, tags=tagNumber)
+                        font=fntCal, tags=tagNumber)
                     xpos += 27
             intposarr += 1
         self.canvas.tag_bind("DayButton", "<ButtonRelease-1>",
