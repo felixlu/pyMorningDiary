@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from datetime import date
+import os
 import sqlite3
 import tkinter as tk
 import tkinter.colorchooser as tkcolorchooser
@@ -13,18 +14,15 @@ import dlgCalendar
 
 class UIDiary(tk.Frame):
 
-    def __init__(self, parent):
+    def __init__(self, parent, db):
         tk.Frame.__init__(self, parent)
+        self.db = db
         self.frame = tk.Frame(self)
         self.frame.pack(side=tk.LEFT, expand=tk.YES, fill=tk.BOTH)
         self.grid(row=0, column=0)
 
-        self.TITLES = ['人际关系 家庭 朋友', '未来日记 明日摘要', '愿望 人生梦想',
-            '健康 饮食 锻炼', '情报 信息 阅读',
-            '理财 金钱', '工作 创意 兴趣', '快乐 惊喜 其他']
-        self.COLORS = ['#e4fd82', '#affeff', '#fefebb',
-            '#d9fefe', '#52c8ff',
-            '#fd97b4', '#6bf6a6', '#d287f9']
+        self.TITLES = self.db.get_pane_titles()
+        self.COLORS = self.db.get_pane_colors()
         self.PANE_ROW = 2      # Diary Pane row offset
         self.POSITIONS = [(self.PANE_ROW, 0), (self.PANE_ROW, 1),
             (self.PANE_ROW, 2), (self.PANE_ROW + 1, 0),
@@ -37,7 +35,8 @@ class UIDiary(tk.Frame):
     def create_widgets(self):
 
         UIDiaryMenu(self.frame).grid(row=0, column=0, columnspan=3, sticky='WE')
-        UIDateNavigator(self.frame).grid(row=1, column=0, columnspan=3)
+        UIDateNavigator(self.frame).grid(row=1, column=0, columnspan=3,
+            sticky='WE')
         UIDiaryInfo(self.frame).grid(row=self.PANE_ROW + 1, column=1)
 
         for i in range(8):
@@ -79,6 +78,9 @@ class UIDiaryMenu(tk.Frame):
         self.HELP_F1 = '帮助  F1'
         self.ABOUT = '关于(A)'
 
+        self.create_menus()
+
+    def create_menus(self):
         self.btn_file = tk.Menubutton(self.menubar, text=self.FILE,
             underline=3)
         self.btn_file.pack(side=tk.LEFT)
@@ -145,6 +147,63 @@ class UIDiaryMenu(tk.Frame):
 
     def todo_method(self):
         # TODO
+        pass
+
+
+class UIDateNavigator(tk.Frame):
+
+    def __init__(self, parent):
+        tk.Frame.__init__(self, parent)
+        self.frame = tk.Frame(self)
+        self.frame.pack(side=tk.LEFT, expand=tk.YES, fill=tk.BOTH)
+
+        self.DATE = '  日期'
+        self.TODAY = '今天'
+        self.KEYWORD = '     关键字'
+        self.SEARCH_DEFAULT = '搜索整篇日记内容'
+        self.SEARCH = '搜索'
+        self.NEXT = '下一篇'
+        self.date = date.today()
+
+        self.create_widgets()
+
+    def create_widgets(self):
+
+        tk.Label(self.frame, text=self.DATE).grid(
+            row=0, column=0, sticky='E')
+        self.date_var = tk.StringVar()
+        self.date_var.set(self.date.isoformat())
+        self.entry_date = tk.Entry(self.frame, textvariable=self.date_var,
+            width=10)
+        self.entry_date.grid(row=0, column=1)
+        self.entry_date.bind("<Button-1>", self.goto_date)
+
+        tk.Button(self.frame, text=self.TODAY, command=self.goto_today).grid(
+            row=0, column=2)
+        tk.Label(self.frame, text=self.KEYWORD).grid(
+            row=0, column=3, sticky='E')
+
+        self.search_var = tk.StringVar()
+        self.search_var.set(self.SEARCH_DEFAULT)
+        tk.Entry(self.frame, textvariable=self.search_var).grid(row=0, column=4)
+
+        tk.Button(self.frame, text=self.SEARCH, command=self.search).grid(
+            row=0, column=5)
+        tk.Button(self.frame, text=self.NEXT, command=self.search_next).grid(
+            row=0, column=6)
+
+    def goto_today(self):
+        pass
+
+    def goto_date(self, event):
+        dlgCalendar.tkCalendar(self.frame, self.date.year, self.date.month,
+            self.date.day, self.date_var)
+        # TODO: 在上一个界面中选定日期后刷新显示日记，及该日期的周年纪念信息
+
+    def search(self):
+        pass
+
+    def search_next(self):
         pass
 
 
@@ -277,62 +336,11 @@ class UIDiaryInfo(tk.Frame):
         tk.Entry(self.frame, textvariable=self.getup_var).grid(row=8, column=1)
 
 
-class UIDateNavigator(tk.Frame):
-
-    def __init__(self, parent):
-        tk.Frame.__init__(self, parent)
-        self.frame = tk.Frame(self)
-        self.frame.pack(side=tk.LEFT, expand=tk.YES, fill=tk.BOTH)
-
-        self.DATE = '日期'
-        self.TODAY = '今天'
-        self.SEARCH_DEFAULT = '搜索整篇日记内容'
-        self.SEARCH = '搜索'
-        self.NEXT = '下一篇'
-
-        self.create_widgets()
-
-    def create_widgets(self):
-
-        tk.Label(self.frame, text=self.DATE).grid(row=0, column=0, sticky='E')
-        self.date_var = tk.StringVar()
-        self.entry_date = tk.Entry(self.frame, textvariable=self.date_var,
-            width=10)
-        self.entry_date.grid(row=0, column=1)
-        self.entry_date.bind("<Button-1>", self.goto_date)
-
-        tk.Button(self.frame, text=self.TODAY, command=self.goto_today).grid(
-            row=0, column=2)
-        tk.Label(self.frame, text='', width=10).grid(row=0, column=3)
-
-        self.search_var = tk.StringVar()
-        self.search_var.set(self.SEARCH_DEFAULT)
-        tk.Entry(self.frame, textvariable=self.search_var).grid(row=0, column=4)
-
-        tk.Button(self.frame, text=self.SEARCH, command=self.search).grid(
-            row=0, column=5)
-        tk.Button(self.frame, text=self.NEXT, command=self.search_next).grid(
-            row=0, column=6)
-
-    def goto_today(self):
-        pass
-
-    def goto_date(self, event):
-        dlgCalendar.tkCalendar(self.frame, 2011, 10, 6, self.date_var)
-        # TODO: 在上一个界面中选定日期后刷新显示日记，及该日期的周年纪念信息
-
-    def search(self):
-        pass
-
-    def search_next(self):
-        pass
-
-
 class DBSQLite:
 
     def __init__(self, db_name='.pyMorningDiary.db'):
         self.db_name = db_name
-        self.db_path = os.path.join(os.path.expanduser('~'), db_name)
+        self.db_path = os.path.join(os.path.expanduser('~'), self.db_name)
 
         self.needs_init = False
         if not os.path.isfile(self.db_path):
@@ -348,6 +356,9 @@ class DBSQLite:
             except Exception as e:
                 print(e)
 
+    def __del__(self):
+        self.con.close()
+
     def init_db(self):
         self.cur.execute("""
             CREATE TABLE PANESETTING (
@@ -356,6 +367,8 @@ class DBSQLite:
                 COLOR           TEXT,
                 TITLE           TEXT
             );
+        """)
+        self.cur.execute("""
             CREATE TABLE DIARY (
                 ID              INTEGER PRIMARY KEY AUTOINCREMENT,
                 DATE            TEXT,
@@ -363,6 +376,8 @@ class DBSQLite:
                 TITLE           TEXT,
                 CONTENT         TEXT
             );
+        """)
+        self.cur.execute("""
             CREATE TABLE DIARYINFO (
                 ID              INTEGER PRIMARY KEY AUTOINCREMENT,
                 DATE            TEXT,
@@ -377,48 +392,205 @@ class DBSQLite:
                 BIRTHDAY_OF     TEXT
             );
         """)
+        self.cur.executemany("""
+            INSERT INTO PANESETTING (P_INDEX, TITLE, COLOR)
+            VALUES
+            (?, ?, ?)
+        """, [('0', '人际关系 家庭 朋友', '#e4fd82'),
+            ('1', '未来日记 明日摘要', '#affeff'),
+            ('2', '愿望 人生梦想', '#fefebb'),
+            ('3', '健康 饮食 锻炼', '#d9fefe'),
+            ('4', '情报 信息 阅读', '#52c8ff'),
+            ('5', '理财 金钱', '#fd97b4'),
+            ('6', '工作 创意 兴趣', '#6bf6a6'),
+            ('7', '快乐 惊喜 其他', '#d287f9')])
+        self.con.commit()
+
+    def update_pane_setting(self, pane_index, **setting):
+        for key, value in setting:
+            if key in ('COLOR', 'TITLE'):
+                self.cur.execute("""
+                    UPDATE PANESETTING SET
+                    ?=?
+                    WHERE
+                    P_INDEX=?;
+                """, (key, value, pane_index))
+        self.con.commit()
+
+    def get_pane_colors(self):
+        self.cur.execute("""
+            SELECT COLOR
+            FROM
+            PANESETTING
+            ORDER BY P_INDEX;
+        """)
+        results = self.cur.fetchall()
+        colors = []
+        for result in results:
+            colors.append(result[0])
+        return colors
+
+    def get_pane_titles(self):
+        self.cur.execute("""
+            SELECT TITLE
+            FROM
+            PANESETTING
+            ORDER BY P_INDEX;
+        """)
+        results = self.cur.fetchall()
+        titles = []
+        for result in results:
+            titles.append(result[0])
+        return titles
+
+    def reset_pane_settings(self):
+        self.cur.execute("""
+            DELETE FROM PANESETTING;
+        """)
+        self.cur.executemany("""
+            INSERT INTO PANESETTING (P_INDEX, TITLE, COLOR)
+            VALUES
+            (?, ?, ?)
+        """, [('0', '人际关系 家庭 朋友', '#e4fd82'),
+            ('1', '未来日记 明日摘要', '#affeff'),
+            ('2', '愿望 人生梦想', '#fefebb'),
+            ('3', '健康 饮食 锻炼', '#d9fefe'),
+            ('4', '情报 信息 阅读', '#52c8ff'),
+            ('5', '理财 金钱', '#fd97b4'),
+            ('6', '工作 创意 兴趣', '#6bf6a6'),
+            ('7', '快乐 惊喜 其他', '#d287f9')])
         self.con.commit()
 
     def insert_diary(self, date, diary_index, title, content):
-        pass
+        self.cur.execute("""
+            INSERT INTO DIARY (DATE, D_INDEX, TITLE, CONTENT)
+            VALUES
+            (?, ?, ?, ?);
+        """, (data, diary_index, title, content))
+        self.con.commit()
 
-    def update_diary(self, date, diary_index, title, content):
-        pass
+    def update_diary(self, date, diary_index, **diary):
+        for key, value in diary:
+            if key in ('TITLE', 'CONTENT'):
+                self.cur.execute("""
+                    UPDATE DIARY SET
+                    ?=?
+                    WHERE
+                    DATE=?
+                    AND
+                    D_INDEX=?;
+                """, (key, value, date, diary_index))
+        self.con.commit()
 
     def delete_diary(self, date):
-        pass
+        self.cur.execute("""
+            DELETE FROM DIARY
+            WHERE
+            DATE=?;
+        """, date)
+        self.con.commit()
 
-    def insert_diary_info(self, date, **infos):
-        for key, info in infos:
-            if key in ('weather', 'temperature', 'humidity', 'sleep_time',
-                'get_up_time', 'festival', 'commemoration', 'meet_with',
-                'birthday_of'):
+    def get_diary_by_date(self, date):
+        self.cur.execute("""
+            SELECT DATE, D_INDEX, TITLE, CONTENT
+            FROM DIARY
+            WHERE
+            DATE=?
+            ORDER BY DATE;
+        """, date)
+        return self.cur.fetchall()
+
+    def get_diary_by_content(self, content):
+        self.cur.execute("""
+            SELECT DATE, D_INDEX, TITLE, CONTENT
+            FROM DIARY
+            WHERE
+            DATE IN (
+                SELECT DISTINCT DATE
+                FROM DIARY
+                WHERE
+                CONTENT LIKE ?
+            ) ORDER BY DATE;
+        """, '%' + content + '%')
+        return self.cur.fetchall()
+
+    def get_diary_by_info(self, info):
+        self.cur.execute("""
+            SELECT DATE, D_INDEX, TITLE, CONTENT
+            FROM DIARY
+            WHERE
+            DATE IN (
+                SELECT DISTINCT DATE
+                FROM DIARYINFO
+                WHERE
+                COMMEMORATION LIKE ?
+                OR
+                MEET_WITH LIKE ?
+                OR
+                BIRTHDAY_OF LIKE ?
+            ) ORDER BY DATE;
+        """, ('%' + info + '%', '%' + info + '%', '%' + info + '%'))
+        return self.cur.fetchall()
+
+    def get_diary_by_keyword(self, keyword):
+        self.cur.execute("""
+            SELECT DATE, D_INDEX, TITLE, CONTENT
+            FROM DIARY
+            WHERE
+            DATE IN (
+                SELECT DISTINCT DATE
+                FROM DIARY, DIARYINFO
+                WHERE
+                DIARY.CONTENT LIKE ?
+                OR
+                DIARYINFO.COMMEMORATION LIKE ?
+                OR
+                DIARYINFO.MEET_WITH LIKE ?
+                OR
+                DIARYINFO.BIRTHDAY_OF LIKE ?
+            ) ORDER BY DATE;
+        """, ('%' + keyword + '%', '%' + keyword + '%', '%' + keyword + '%',
+            '%' + keyword + '%'))
+        return self.cur.fetchall()
+
+    def insert_diary_info(self, date, **info):
+        for key, value in info:
+            if key in ('WEATHER', 'TEMPERATURE', 'HUMIDITY', 'SLEEP_TIME',
+                'GET_UP_TIME', 'FESTIVAL', 'COMMEMORATION', 'MEET_WITH',
+                'BIRTHDAY_OF'):
                     self.cur.execute("""
                         INSERT INTO DIARYINFO (DATE, ?)
                         VALUES
-                        (?, ?)
-                    """, (key, date, info))
+                        (?, ?);
+                    """, (key, date, value))
         self.con.commit()
 
-    def update_diary_info(self, date, **infos):
-        for key, info in infos:
-            if key in ('weather', 'temperature', 'humidity', 'sleep_time',
-                'get_up_time', 'festival', 'commemoration', 'meet_with',
-                'birthday_of'):
+    def update_diary_info(self, date, **info):
+        for key, value in info:
+            if key in ('WEATHER', 'TEMPERATURE', 'HUMIDITY', 'SLEEP_TIME',
+                'GET_UP_TIME', 'FESTIVAL', 'COMMEMORATION', 'MEET_WITH',
+                'BIRTHDAY_OF'):
                     self.cur.execute("""
                         UPDATE DIARYINFO SET
                         ?=?
                         WHERE
-                        DATE=?
-                    """, (key, info, date))
+                        DATE=?;
+                    """, (key, value, date))
         self.con.commit()
 
     def delete_diary_info(self, date):
-        pass
+        self.cur.execute("""
+            DELETE FROM DIARYINFO
+            WHERE
+            DATE=?;
+        """, date)
+        self.con.commit()
 
 
 if __name__ == '__main__':
     app = tk.Tk()
     app.title('晨间日记 - pyMorningDiary')
-    diary = UIDiary(app)
+    db = DBSQLite()
+    diary = UIDiary(app, db)
     app.mainloop()
+    del(db)
