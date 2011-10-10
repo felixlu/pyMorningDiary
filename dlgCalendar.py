@@ -101,6 +101,9 @@ class tkCalendar:
         self.canvas.tag_bind("Arrow", "<Leave>", self.fnOnMouseOut)
         self.fnFillCalendar()
 
+    def bind(self, event, *args):
+        self.canvas.bind(event, args)
+
     def fnCreateRightArrow(self, canv, x, y, strtagname):
         canv.create_polygon(x, y, [[x+0, y-5], [x+10, y-5], [x+10, y-10],
             [x+20, y+0], [x+10, y+10], [x+10, y+5], [x+0, y+5]],
@@ -213,11 +216,9 @@ class clsMainFrame(tk.Frame):
         self.date_var.set(strdate)
         label = tk.Label(master, textvariable=self.date_var, bg="white")
         label.pack(side="top")
-        testBtn = tk.Button(master, text='getdate',
-            command=self.fnCalendar)
+        testBtn = tk.Button(master, text='getdate', command=self.fnCalendar)
         testBtn.pack(side='left')
-        exitBtn = tk.Button(master, text='Exit',
-             command=master.destroy)
+        exitBtn = tk.Button(master, text='Exit', command=master.destroy)
         exitBtn.pack(side='right')
 
     def fnCalendar(self):

@@ -5,7 +5,7 @@ import os
 import sqlite3
 import tkinter as tk
 import tkinter.colorchooser as tkcolorchooser
-import dlgCalendar
+from dlgCalendar import tkCalendar
 
 # date.today()
 # d.isoformat()
@@ -34,16 +34,30 @@ class UIDiary(tk.Frame):
 
     def create_widgets(self):
 
-        UIDiaryMenu(self.frame).grid(row=0, column=0, columnspan=3, sticky='WE')
-        UIDateNavigator(self.frame).grid(row=1, column=0, columnspan=3,
-            sticky='WE')
-        UIDiaryInfo(self.frame).grid(row=self.PANE_ROW + 1, column=1)
+        UIDiaryMenu(self.frame).grid(
+            row=0, column=0, columnspan=3, sticky='WE')
+        UIDateNavigator(self.frame, self).grid(
+            row=1, column=0, columnspan=3, sticky='WE')
+        UIDiaryInfo(self.frame).grid(
+            row=self.PANE_ROW + 1, column=1)
 
         for i in range(8):
             self.DIARYPANES.append(UIDiaryPane(self.frame,
                 self.TITLES[i], self.COLORS[i]))
             self.DIARYPANES[i].grid(row=self.POSITIONS[i][0],
                 column=self.POSITIONS[i][1])
+
+    def display_diary_by_date(self, date):
+        # TODO
+        print('Diary {0} refreshed.'.format(date))
+
+    def get_first_diary_by_keyword(self, keyword):
+        # TODO
+        print('got it:', db.get_diary_by_keyword(keyword))
+
+    def get_next_diary_by_keyword(self, keyword):
+        # TODO
+        print('next')
 
 
 class UIDiaryMenu(tk.Frame):
@@ -152,12 +166,14 @@ class UIDiaryMenu(tk.Frame):
 
 class UIDateNavigator(tk.Frame):
 
-    def __init__(self, parent):
+    def __init__(self, parent, ui):
         tk.Frame.__init__(self, parent)
+        self.ui = ui
         self.frame = tk.Frame(self)
         self.frame.pack(side=tk.LEFT, expand=tk.YES, fill=tk.BOTH)
 
         self.DATE = '  日期'
+        self.GOTO = '转到'
         self.TODAY = '今天'
         self.KEYWORD = '     关键字'
         self.SEARCH_DEFAULT = '搜索整篇日记内容'
@@ -176,32 +192,36 @@ class UIDateNavigator(tk.Frame):
         self.entry_date = tk.Entry(self.frame, textvariable=self.date_var,
             width=10)
         self.entry_date.grid(row=0, column=1)
-        self.entry_date.bind("<Button-1>", self.goto_date)
-
-        tk.Button(self.frame, text=self.TODAY, command=self.goto_today).grid(
+        self.entry_date.bind("<Button-1>", self.set_date)
+        tk.Button(self.frame, text=self.GOTO, command=self.refresh_diary).grid(
             row=0, column=2)
+        tk.Button(self.frame, text=self.TODAY, command=self.goto_today).grid(
+            row=0, column=3)
         tk.Label(self.frame, text=self.KEYWORD).grid(
-            row=0, column=3, sticky='E')
+            row=0, column=4, sticky='E')
 
         self.search_var = tk.StringVar()
         self.search_var.set(self.SEARCH_DEFAULT)
-        tk.Entry(self.frame, textvariable=self.search_var).grid(row=0, column=4)
+        tk.Entry(self.frame, textvariable=self.search_var).grid(row=0, column=5)
 
         tk.Button(self.frame, text=self.SEARCH, command=self.search).grid(
-            row=0, column=5)
-        tk.Button(self.frame, text=self.NEXT, command=self.search_next).grid(
             row=0, column=6)
+        tk.Button(self.frame, text=self.NEXT, command=self.search_next).grid(
+            row=0, column=7)
 
     def goto_today(self):
-        pass
+        self.date_var.set(self.date.isoformat())
+        self.refresh_diary()
 
-    def goto_date(self, event):
-        dlgCalendar.tkCalendar(self.frame, self.date.year, self.date.month,
-            self.date.day, self.date_var)
-        # TODO: 在上一个界面中选定日期后刷新显示日记，及该日期的周年纪念信息
+    def set_date(self, event):
+        tkCalendar(self.frame, self.date.year, self.date.month, self.date.day,
+            self.date_var)
+
+    def refresh_diary(self):
+        self.ui.display_diary_by_date(self.date_var.get())
 
     def search(self):
-        pass
+        self.ui.get_first_diary_by_keyword(self.search_var.get())
 
     def search_next(self):
         pass
@@ -538,16 +558,22 @@ class DBSQLite:
             FROM DIARY
             WHERE
             DATE IN (
-                SELECT DISTINCT DATE
-                FROM DIARY, DIARYINFO
+                SELECT DISTINCT A.DATE
+                FROM DIARY A, DIARYINFO B
                 WHERE
-                DIARY.CONTENT LIKE ?
+                A.DATE IS NOT NULL
+                AND
+                B.DATE IS NOT NULL
+                AND
+                A.DATE = B.DATE
+                AND
+                (A.CONTENT LIKE ?
                 OR
-                DIARYINFO.COMMEMORATION LIKE ?
+                B.COMMEMORATION LIKE ?
                 OR
-                DIARYINFO.MEET_WITH LIKE ?
+                B.MEET_WITH LIKE ?
                 OR
-                DIARYINFO.BIRTHDAY_OF LIKE ?
+                B.BIRTHDAY_OF LIKE ?)
             ) ORDER BY DATE;
         """, ('%' + keyword + '%', '%' + keyword + '%', '%' + keyword + '%',
             '%' + keyword + '%'))
