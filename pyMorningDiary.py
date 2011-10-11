@@ -370,6 +370,15 @@ class DBSQLite:
         self.con.isolation_level = None
         self.cur = self.con.cursor()
 
+        self.default_setting = [('0', '人际关系 家庭 朋友', '#e4fd82'),
+            ('1', '未来日记 明日摘要', '#affeff'),
+            ('2', '愿望 人生梦想', '#fefebb'),
+            ('3', '健康 饮食 锻炼', '#d9fefe'),
+            ('4', '情报 信息 阅读', '#52c8ff'),
+            ('5', '理财 金钱', '#fd97b4'),
+            ('6', '工作 创意 兴趣', '#6bf6a6'),
+            ('7', '快乐 惊喜 其他', '#d287f9')]
+
         if self.needs_init:
             try:
                 self.init_db()
@@ -416,14 +425,7 @@ class DBSQLite:
             INSERT INTO PANESETTING (P_INDEX, TITLE, COLOR)
             VALUES
             (?, ?, ?)
-        """, [('0', '人际关系 家庭 朋友', '#e4fd82'),
-            ('1', '未来日记 明日摘要', '#affeff'),
-            ('2', '愿望 人生梦想', '#fefebb'),
-            ('3', '健康 饮食 锻炼', '#d9fefe'),
-            ('4', '情报 信息 阅读', '#52c8ff'),
-            ('5', '理财 金钱', '#fd97b4'),
-            ('6', '工作 创意 兴趣', '#6bf6a6'),
-            ('7', '快乐 惊喜 其他', '#d287f9')])
+        """, self.default_setting)
         self.con.commit()
 
     def update_pane_setting(self, pane_index, **setting):
@@ -471,14 +473,7 @@ class DBSQLite:
             INSERT INTO PANESETTING (P_INDEX, TITLE, COLOR)
             VALUES
             (?, ?, ?)
-        """, [('0', '人际关系 家庭 朋友', '#e4fd82'),
-            ('1', '未来日记 明日摘要', '#affeff'),
-            ('2', '愿望 人生梦想', '#fefebb'),
-            ('3', '健康 饮食 锻炼', '#d9fefe'),
-            ('4', '情报 信息 阅读', '#52c8ff'),
-            ('5', '理财 金钱', '#fd97b4'),
-            ('6', '工作 创意 兴趣', '#6bf6a6'),
-            ('7', '快乐 惊喜 其他', '#d287f9')])
+        """, self.default_setting)
         self.con.commit()
 
     def insert_diary(self, date, diary_index, title, content):
