@@ -259,10 +259,10 @@ class UIDiaryPane(tk.Frame):
         self.TITLE_var.set(str_title)
 
     def get_text(self):
-        return self.txt_cell.get(tk.START, tk.END)
+        return self.txt_cell.get(0.0, tk.END)
 
     def set_text(self, str_text):
-        self.txt_cell.delete(tk.START, tk.END)
+        self.txt_cell.delete(0.0, tk.END)
         self.txt_cell.insert(tk.END, str_text)
 
     def change_color(self):
@@ -486,7 +486,7 @@ class DBSQLite:
             INSERT INTO DIARY (DATE, D_INDEX, TITLE, CONTENT)
             VALUES
             (?, ?, ?, ?);
-        """, (data, diary_index, title, content))
+        """, (date, diary_index, title, content))
         self.con.commit()
 
     def update_diary(self, date, diary_index, **diary):
