@@ -43,13 +43,13 @@ class UIDiary(tk.Frame):
 
         for i in range(8):
             self.DIARYPANES.append(UIDiaryPane(self.frame,
-                self.TITLES[i], self.COLORS[i]))
+                self.TITLES[i], self.COLORS[i]), self)
             self.DIARYPANES[i].grid(row=self.POSITIONS[i][0],
                 column=self.POSITIONS[i][1])
 
     def display_diary_by_date(self, date):
-        # TODO
-        print('Diary {0} refreshed.'.format(date))
+        print('Diary:', db.get_diary_by_date(date))
+        print('Info:', db.get_info_by_date(date))
 
     def get_first_diary_by_keyword(self, keyword):
         # TODO
@@ -58,6 +58,9 @@ class UIDiary(tk.Frame):
     def get_next_diary_by_keyword(self, keyword):
         # TODO
         print('next')
+
+    def related_diary(self, date):
+        print('Diary:', date)
 
 
 class UIDiaryMenu(tk.Frame):
@@ -68,16 +71,16 @@ class UIDiaryMenu(tk.Frame):
         self.menubar.pack(fill=tk.X)
 
         self.FILE = '文件(F)'
-        self.SAVE = '保存(S)'
+        self.SAVE = '保存(S)  Ctrl + S'
         self.DELETE = '删除(D)'
         self.BACKUPDB = '备份数据文件(B)'
-        self.EXIT = '退出(X)  Alt+F4'
+        self.EXIT = '退出(X)  Alt + F4'
 
         self.GOTO = '转到(G)'
         self.NEXT_10YEARS = '下十年这天'
         self.PREV_10YEARS = '上十年这天'
-        self.NEXT_YEAR = '下一年这天  Ctrl+PgDown'
-        self.PREV_YEAR = '上一年这天  Ctrl+PgUp'
+        self.NEXT_YEAR = '下一年这天  Ctrl + PgDown'
+        self.PREV_YEAR = '上一年这天  Ctrl + PgUp'
         self.NEXT_MONTH = '下个月这天'
         self.PREV_MONTH = '上个月这天'
         self.NEXT_WEEK = '下星期这天'
@@ -229,7 +232,7 @@ class UIDateNavigator(tk.Frame):
 
 class UIDiaryPane(tk.Frame):
 
-    def __init__(self, parent, title, bg_color):
+    def __init__(self, parent, title, bg_color, ui):
         tk.Frame.__init__(self, parent)
         self.frame = tk.Frame(self)
         self.frame.pack(side=tk.LEFT, expand=tk.YES, fill=tk.BOTH)
@@ -271,11 +274,7 @@ class UIDiaryPane(tk.Frame):
         self.txt_cell.configure(bg=self.bg_color)
 
     def focus_in(self, event):
-        # TODO: 自动查出往年的历史日记，并缓存当前日记
-        pass
-
-    def focus_out(self, event):
-        # TODO: 对比当前日记内容和缓存值，若有更新则自动保存
+        # TODO: 自动查出往年的历史日记
         pass
 
 
@@ -289,12 +288,12 @@ class UIDiaryInfo(tk.Frame):
         self.WEATHER = '天气'
         self.TEMPERATURE = '温度'
         self.HUMIDITY = '湿度'
+        self.SLEEP = '睡觉时间'
+        self.GETUP = '起床时间'
         self.FESTIVAL = '节日'
         self.COMMOMERATION = '纪念日'
         self.MEET = '邂逅日'
         self.BIRTHDAY = '诞生日'
-        self.SLEEP = '睡觉时间'
-        self.GETUP = '起床时间'
 
         self.create_widgets()
 
@@ -319,41 +318,41 @@ class UIDiaryInfo(tk.Frame):
         tk.Entry(self.frame, textvariable=self.humidity_var).grid(
             row=2, column=1)
 
+        tk.Label(self.frame, text=self.SLEEP).grid(row=3, column=0, sticky='E')
+        self.sleep_var = tk.StringVar()
+        self.sleep_var.set('')
+        tk.Entry(self.frame, textvariable=self.sleep_var).grid(row=3, column=1)
+
+        tk.Label(self.frame, text=self.GETUP).grid(row=4, column=0, sticky='E')
+        self.getup_var = tk.StringVar()
+        self.getup_var.set('')
+        tk.Entry(self.frame, textvariable=self.getup_var).grid(row=4, column=1)
+
         tk.Label(self.frame, text=self.FESTIVAL).grid(
-            row=3, column=0, sticky='E')
+            row=5, column=0, sticky='E')
         self.festival_var = tk.StringVar()
         self.festival_var.set('')
         tk.Entry(self.frame, textvariable=self.festival_var).grid(
-            row=3, column=1)
+            row=5, column=1)
 
         tk.Label(self.frame, text=self.COMMOMERATION).grid(
-            row=4, column=0, sticky='E')
+            row=6, column=0, sticky='E')
         self.commomeration_var = tk.StringVar()
         self.commomeration_var.set('')
         tk.Entry(self.frame, textvariable=self.commomeration_var).grid(
-            row=4, column=1)
+            row=6, column=1)
 
-        tk.Label(self.frame, text=self.MEET).grid(row=5, column=0, sticky='E')
+        tk.Label(self.frame, text=self.MEET).grid(row=7, column=0, sticky='E')
         self.meet_var = tk.StringVar()
         self.meet_var.set('')
-        tk.Entry(self.frame, textvariable=self.meet_var).grid(row=5, column=1)
+        tk.Entry(self.frame, textvariable=self.meet_var).grid(row=7, column=1)
 
         tk.Label(self.frame, text=self.BIRTHDAY).grid(
-            row=6, column=0, sticky='E')
+            row=8, column=0, sticky='E')
         self.birthday_var = tk.StringVar()
         self.birthday_var.set('')
         tk.Entry(self.frame, textvariable=self.birthday_var).grid(
-            row=6, column=1)
-
-        tk.Label(self.frame, text=self.SLEEP).grid(row=7, column=0, sticky='E')
-        self.sleep_var = tk.StringVar()
-        self.sleep_var.set('')
-        tk.Entry(self.frame, textvariable=self.sleep_var).grid(row=7, column=1)
-
-        tk.Label(self.frame, text=self.GETUP).grid(row=8, column=0, sticky='E')
-        self.getup_var = tk.StringVar()
-        self.getup_var.set('')
-        tk.Entry(self.frame, textvariable=self.getup_var).grid(row=8, column=1)
+            row=8, column=1)
 
 
 class DBSQLite:
@@ -370,7 +369,7 @@ class DBSQLite:
         self.con.isolation_level = None
         self.cur = self.con.cursor()
 
-        self.default_setting = [('0', '人际关系 家庭 朋友', '#e4fd82'),
+        self.SETTINGS = [('0', '人际关系 家庭 朋友', '#e4fd82'),
             ('1', '未来日记 明日摘要', '#affeff'),
             ('2', '愿望 人生梦想', '#fefebb'),
             ('3', '健康 饮食 锻炼', '#d9fefe'),
@@ -378,6 +377,9 @@ class DBSQLite:
             ('5', '理财 金钱', '#fd97b4'),
             ('6', '工作 创意 兴趣', '#6bf6a6'),
             ('7', '快乐 惊喜 其他', '#d287f9')]
+        self.INFOS = ('WEATHER', 'TEMPERATURE', 'HUMIDITY',
+            'SLEEP_TIME', 'GET_UP_TIME',
+            'FESTIVAL', 'COMMEMORATION', 'MEET_WITH', 'BIRTHDAY_OF')
 
         if self.needs_init:
             try:
@@ -396,7 +398,7 @@ class DBSQLite:
                 COLOR           TEXT,
                 TITLE           TEXT
             );
-        """)
+            """)
         self.cur.execute("""
             CREATE TABLE DIARY (
                 ID              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -405,7 +407,7 @@ class DBSQLite:
                 TITLE           TEXT,
                 CONTENT         TEXT
             );
-        """)
+            """)
         self.cur.execute("""
             CREATE TABLE DIARYINFO (
                 ID              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -420,12 +422,12 @@ class DBSQLite:
                 MEET_WITH       TEXT,
                 BIRTHDAY_OF     TEXT
             );
-        """)
+            """)
         self.cur.executemany("""
             INSERT INTO PANESETTING (P_INDEX, TITLE, COLOR)
             VALUES
             (?, ?, ?)
-        """, self.default_setting)
+            """, self.SETTINGS)
         self.con.commit()
 
     def update_pane_setting(self, pane_index, **setting):
@@ -436,7 +438,7 @@ class DBSQLite:
                     ?=?
                     WHERE
                     P_INDEX=?;
-                """, (key, value, pane_index))
+                    """, (key, value, pane_index))
         self.con.commit()
 
     def get_pane_colors(self):
@@ -445,7 +447,7 @@ class DBSQLite:
             FROM
             PANESETTING
             ORDER BY P_INDEX;
-        """)
+            """)
         results = self.cur.fetchall()
         colors = []
         for result in results:
@@ -458,7 +460,7 @@ class DBSQLite:
             FROM
             PANESETTING
             ORDER BY P_INDEX;
-        """)
+            """)
         results = self.cur.fetchall()
         titles = []
         for result in results:
@@ -468,12 +470,12 @@ class DBSQLite:
     def reset_pane_settings(self):
         self.cur.execute("""
             DELETE FROM PANESETTING;
-        """)
+            """)
         self.cur.executemany("""
             INSERT INTO PANESETTING (P_INDEX, TITLE, COLOR)
             VALUES
             (?, ?, ?)
-        """, self.default_setting)
+            """, self.SETTINGS)
         self.con.commit()
 
     def insert_diary(self, date, diary_index, title, content):
@@ -481,7 +483,7 @@ class DBSQLite:
             INSERT INTO DIARY (DATE, D_INDEX, TITLE, CONTENT)
             VALUES
             (?, ?, ?, ?);
-        """, (date, diary_index, title, content))
+            """, (date, diary_index, title, content))
         self.con.commit()
 
     def update_diary(self, date, diary_index, **diary):
@@ -494,7 +496,7 @@ class DBSQLite:
                     DATE=?
                     AND
                     D_INDEX=?;
-                """, (key, value, date, diary_index))
+                    """, (key, value, date, diary_index))
         self.con.commit()
 
     def delete_diary(self, date):
@@ -502,7 +504,7 @@ class DBSQLite:
             DELETE FROM DIARY
             WHERE
             DATE=?;
-        """, date)
+            """, date)
         self.con.commit()
 
     def get_diary_by_date(self, date):
@@ -512,7 +514,7 @@ class DBSQLite:
             WHERE
             DATE=?
             ORDER BY DATE;
-        """, date)
+            """, date)
         return self.cur.fetchall()
 
     def get_diary_by_content(self, content):
@@ -526,7 +528,7 @@ class DBSQLite:
                 WHERE
                 CONTENT LIKE ?
             ) ORDER BY DATE;
-        """, '%' + content + '%')
+            """, '%' + content + '%')
         return self.cur.fetchall()
 
     def get_diary_by_info(self, info):
@@ -544,7 +546,7 @@ class DBSQLite:
                 OR
                 BIRTHDAY_OF LIKE ?
             ) ORDER BY DATE;
-        """, ('%' + info + '%', '%' + info + '%', '%' + info + '%'))
+            """, ('%' + info + '%', '%' + info + '%', '%' + info + '%'))
         return self.cur.fetchall()
 
     def get_diary_by_keyword(self, keyword):
@@ -570,32 +572,59 @@ class DBSQLite:
                 OR
                 B.BIRTHDAY_OF LIKE ?)
             ) ORDER BY DATE;
-        """, ('%' + keyword + '%', '%' + keyword + '%', '%' + keyword + '%',
-            '%' + keyword + '%'))
+            """, ('%' + keyword + '%', '%' + keyword + '%',
+            '%' + keyword + '%', '%' + keyword + '%'))
         return self.cur.fetchall()
+
+    def get_related_diary(self, month_day):
+        self.cur.execute("""
+            SELECT DATE, D_INDEX, TITLE, CONTENT
+            FROM DIARY
+            WHERE
+            DATE LIKE ?;
+            """, month_day)
+        return self.cur.fetchall()
+
+    def get_info_by_date(self, date):
+        self.cur.execute("""
+            SELECT WEATHER, TEMPERATURE, HUMIDITY, SLEEP_TIME, GET_UP_TIME,
+                FESTIVAL, COMMEMORATION, MEET_WITH, BIRTHDAY_OF
+            FROM DIARYINFO
+            WHERE
+            DATE=?;
+            """, date)
+        return self.cur.fetchall()
+
+    def get_info(self, date, info):
+        if info in self.INFOS:
+            self.cur.execute("""
+                SELECT ?
+                FROM DIARYINFO
+                WHERE
+                DATE=?;
+                """, info, date)
+            return self.cur.fetchall()
+        else:
+            return None
 
     def insert_diary_info(self, date, **info):
         for key, value in info:
-            if key in ('WEATHER', 'TEMPERATURE', 'HUMIDITY', 'SLEEP_TIME',
-                'GET_UP_TIME', 'FESTIVAL', 'COMMEMORATION', 'MEET_WITH',
-                'BIRTHDAY_OF'):
-                    self.cur.execute("""
-                        INSERT INTO DIARYINFO (DATE, ?)
-                        VALUES
-                        (?, ?);
+            if key in self.INFOS:
+                self.cur.execute("""
+                    INSERT INTO DIARYINFO (DATE, ?)
+                    VALUES
+                    (?, ?);
                     """, (key, date, value))
         self.con.commit()
 
     def update_diary_info(self, date, **info):
         for key, value in info:
-            if key in ('WEATHER', 'TEMPERATURE', 'HUMIDITY', 'SLEEP_TIME',
-                'GET_UP_TIME', 'FESTIVAL', 'COMMEMORATION', 'MEET_WITH',
-                'BIRTHDAY_OF'):
-                    self.cur.execute("""
-                        UPDATE DIARYINFO SET
-                        ?=?
-                        WHERE
-                        DATE=?;
+            if key in self.INFOS:
+                self.cur.execute("""
+                    UPDATE DIARYINFO SET
+                    ?=?
+                    WHERE
+                    DATE=?;
                     """, (key, value, date))
         self.con.commit()
 
@@ -604,7 +633,7 @@ class DBSQLite:
             DELETE FROM DIARYINFO
             WHERE
             DATE=?;
-        """, date)
+            """, date)
         self.con.commit()
 
 
