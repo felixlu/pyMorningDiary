@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 
 from datetime import date
 import os
@@ -33,13 +33,14 @@ class UIDiary(tk.Frame):
         self.create_widgets()
 
     def create_widgets(self):
+        self.frame.bind_all("<Control-KeyPress-s>", self.save_diary)
 
         self.main_menu = UIDiaryMenu(self.frame)
         self.main_menu.grid(row=0, column=0, columnspan=3, sticky='WE')
-        
+
         self.date_nav = UIDateNavigator(self.frame, self)
         self.date_nav.grid(row=1, column=0, columnspan=3, sticky='WE')
-        
+
         self.diary_info = UIDiaryInfo(self.frame)
         self.diary_info.grid(row=self.PANE_ROW + 1, column=1)
 
@@ -62,10 +63,20 @@ class UIDiary(tk.Frame):
 
     def related_diary(self, date):
         print('Diary:', date)
-    
-    def get_diary_input(self):
-        ddate = date()
 
+    def get_diary_input(self):
+        year = self.date_nav.year_var.get()
+        month = self.date_nav.month_var.get()
+        day = self.date_nav.day_var.get()
+        p1title = self.diary_panes[0].get_title()
+        p1content = self.diary_panes[0].get_text()
+        return {'year': year, 'month': month, 'day': day,
+            'P1T': p1title, 'P1C': p1content}
+
+    def save_diary(self, event):
+        diary = self.get_diary_input().values()
+        for d in diary:
+            print('Diary:', d)
 
 class UIDiaryMenu(tk.Frame):
 
@@ -191,7 +202,7 @@ class UIDateNavigator(tk.Frame):
         self.SEARCH_DEFAULT = '搜索整篇日记内容'
         self.SEARCH = '搜索'
         self.NEXT = '下一篇'
-        
+
         self.date = date.today()
         self.year_var = tk.IntVar()
         self.year_var.set(self.date.year)
@@ -208,22 +219,22 @@ class UIDateNavigator(tk.Frame):
 
         tk.Label(self.frame, text=self.DATE).grid(
             row=0, column=0, sticky='E')
-        
+
         tk.Entry(self.frame, textvariable=self.year_var, width=4).grid(
             row=0, column=1)
         tk.Label(self.frame, text=self.YEAR).grid(
             row=0, column=2, sticky='E')
-        
+
         tk.Entry(self.frame, textvariable=self.month_var, width=2).grid(
             row=0, column=3)
         tk.Label(self.frame, text=self.MONTH).grid(
             row=0, column=4, sticky='E')
-        
+
         tk.Entry(self.frame, textvariable=self.day_var, width=2).grid(
             row=0, column=5)
         tk.Label(self.frame, text=self.DAY).grid(
             row=0, column=6, sticky='E')
-        
+
         tk.Button(self.frame, text=self.GOTO, command=self.refresh_diary).grid(
             row=0, column=7)
         tk.Button(self.frame, text=self.TODAY, command=self.goto_today).grid(
@@ -232,7 +243,7 @@ class UIDateNavigator(tk.Frame):
             row=0, column=9)
         tk.Button(self.frame, text=self.NEXT_DAY, command=self.goto_today).grid(
             row=0, column=10)
-        
+
         tk.Label(self.frame, text=self.KEYWORD).grid(
             row=0, column=11, sticky='E')
         tk.Entry(self.frame, textvariable=self.search_var).grid(
@@ -498,7 +509,7 @@ class DBSQLite:
         for result in results:
             titles.append(result[0])
         return titles
-    
+
     def get_pane_setting(self, id):
         self.cur.execute("""
             SELECT PINDEX, TITLE, COLOR
@@ -571,7 +582,7 @@ class DBSQLite:
         self.cur.execute("""
             SELECT *
             FROM DIARY
-            WHERE YEAR=? 
+            WHERE YEAR=?
             AND MONTH=?
             AND DAY=?
             AND ISACTIVE='1'
