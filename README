@@ -4,3 +4,21 @@ Written in Python, Tkinter and SQLite3.
 Author: Felix Lu <lugh82@gmail.com>
 License: GNU GPL
 
+MainUI (Frame)
+|
+|--Menu
+| |--MenuButton
+|   |--MenuEntry    -command
+|
+|--DateNav (Frame)
+| |--Label
+| |--Entry      -var
+| |--Button     -command
+|
+|--Diary (Frame)
+| |--Pane (Frame) x 8
+|   |--Title    -var
+|   |--Text     -var
+|   |--Info (Frame) x 9
+|     |--Label
+|     |--Entry  -var
