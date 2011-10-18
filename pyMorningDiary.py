@@ -1,6 +1,7 @@
 ﻿#!/usr/bin/env python3
 
 from datetime import date
+from datetime import timedelta
 import os
 import sqlite3
 import tkinter as tk
@@ -33,7 +34,8 @@ class UIDiary(tk.Frame):
         self.INFOS = ['WEATHER', 'TEMPERATURE', 'HUMIDITY',
             'SLEEP_TIME', 'GET_UP_TIME',
             'FESTIVAL', 'COMMEMORATION', 'MEET_WITH', 'BIRTHDAY_OF']
-        self.DIARY_FIELDS = ['YEAR', 'MONTH', 'DAY'] + self.PANES + self.INFOS
+        self.DATE = ['YEAR', 'MONTH', 'DAY']
+        self.DIARY_FIELDS = self.DATE + self.PANES + self.INFOS
 
         self.create_widgets()
         self.display_diary_today()
@@ -67,12 +69,16 @@ class UIDiary(tk.Frame):
     def display_diary_by_date(self, ddate):
         diary = self.db.get_diary_by_date(ddate, self.DIARY_FIELDS)
         if diary:
-            self.display_panes(diary)
-            self.diary_info.display_infos(diary)
+            self.display_diary(diary)
         else:
             for i in range(len(self.diary_panes)):
-                self.diary_panes[i].clear_text
+                self.diary_panes[i].clear_text()
                 self.diary_panes[i].set_title(self.titles[i])
+                self.diary_info.clear_infos()
+
+    def display_diary(self, diary):
+        self.display_panes(diary)
+        self.diary_info.display_infos(diary)
 
     def display_panes(self, diary):
         prefix = 'P'
@@ -83,27 +89,35 @@ class UIDiary(tk.Frame):
             key_s = prefix + str(index) + surfix_s
             key_c = prefix + str(index) + surfix_c
             self.diary_panes[i].set_title(diary[key_s])
-            self.diary_panes[i].set_text(diary[key_c])
+            self.diary_panes[i].set_text(diary[key_c][:-1]) # Remove the tailing '\n'
 
-    def get_first_diary_by_keyword(self, keyword):
-        # TODO
-        print('got it:', self.db.get_diary_by_keyword(keyword))
+    def display_first_diary_by_keyword(self, keyword):
+        diaries = self.db.get_diary_by_keyword(keyword, self.DIARY_FIELDS)
+        if diaries:
+            for diary in diaries:
+                if diary:
+                    ddate = self.get_date_from_diary(diaries[0])
+                    self.date_nav.set_date(ddate)
+                    self.display_diary(diaries[0])
+                    break
+        else:
+            pass # TODO: 未找到相关日记，弹出提示
+                
+    def get_date_from_diary(self, diary):
+        year = diary['YEAR']
+        month = diary['MONTH']
+        day = diary['DAY']
+        return date(year, month, day)
 
-    def get_next_diary_by_keyword(self, keyword):
+    def display_next_diary_by_keyword(self, keyword):
         # TODO
         print('next')
 
     def get_related_diary(self, title):
-        print('Diary:', self.get_date(), 'Title:', title)
-
-    def get_date(self):
-        year = self.date_nav.year_var.get()
-        month = self.date_nav.month_var.get()
-        day = self.date_nav.day_var.get()
-        return date(year, month, day)
+        print('Diary:', self.date_nav.get_date_input(), 'Title:', title)
 
     def get_diary_input(self):
-        ddate = self.get_date()
+        ddate = self.date_nav.get_date_input()
         diary = {'YEAR': ddate.year, 'MONTH': ddate.month, 'DAY': ddate.day}
 
         prefix = 'P'
@@ -122,9 +136,6 @@ class UIDiary(tk.Frame):
 
     def save_diary(self, event):
         diary = self.get_diary_input()
-        #~ diary_value = []
-        #~ for i in range(len(self.DIARY_FIELDS)):
-            #~ diary_value.append(diary[self.DIARY_FIELDS[i]])
         self.db.save_diary(diary, self.DIARY_FIELDS)
 
 class UIDiaryMenu(tk.Frame):
@@ -275,36 +286,60 @@ class UIDateNavigator(tk.Frame):
             row=0, column=5)
         tk.Label(self, text=self.DAY).grid(row=0, column=6, sticky='E')
 
-        tk.Button(self, text=self.GOTO, command=self.refresh_diary).grid(
+        tk.Button(self, text=self.GOTO, command=self.goto_date_input).grid(
             row=0, column=7)
         tk.Button(self, text=self.TODAY, command=self.goto_today).grid(
             row=0, column=8)
-        tk.Button(self, text=self.PREV_DAY, command=self.goto_today).grid(
+        tk.Button(self, text=self.PREV_DAY, command=self.goto_date_prev).grid(
             row=0, column=9)
-        tk.Button(self, text=self.NEXT_DAY, command=self.goto_today).grid(
+        tk.Button(self, text=self.NEXT_DAY, command=self.goto_date_next).grid(
             row=0, column=10)
 
         tk.Label(self, text=self.KEYWORD).grid(row=0, column=11, sticky='E')
         tk.Entry(self, textvariable=self.search_var).grid(row=0, column=12)
 
-        tk.Button(self, text=self.SEARCH, command=self.search).grid(
+        tk.Button(self, text=self.SEARCH, command=self.search_input_first).grid(
             row=0, column=13)
-        tk.Button(self, text=self.NEXT, command=self.search_next).grid(
+        tk.Button(self, text=self.NEXT, command=self.search_input_next).grid(
             row=0, column=14)
 
-    def goto_today(self):
-        self.refresh_diary()
+    def set_date(self, ddate):
+        self.year_var.set(ddate.year)
+        self.month_var.set(ddate.month)
+        self.day_var.set(ddate.day)
 
-    def refresh_diary(self):
+    def goto_today(self):
+        self.goto_date(date.today())
+
+    def goto_date(self, ddate):
+        self.set_date(ddate)
+        self.ui.display_diary_by_date(ddate)
+
+    def get_date_input(self):
         year = self.year_var.get()
         month = self.month_var.get()
         day = self.day_var.get()
-        self.ui.display_diary_by_date(date(year, month, day))
+        return date(year, month, day)
 
-    def search(self):
-        self.ui.get_first_diary_by_keyword(self.search_var.get())
+    def goto_date_input(self):
+        self.ui.display_diary_by_date(self.get_date_input())
 
-    def search_next(self):
+    def goto_date_prev(self):
+        ddate = self.get_date_input() - timedelta(days=1)
+        self.goto_date(ddate)
+
+    def goto_date_next(self):
+        ddate = self.get_date_input() + timedelta(days=1)
+        self.goto_date(ddate)
+
+    def get_search_input(self):
+        return self.search_var.get()
+        
+    def search_input_first(self):
+        keyword = self.get_search_input()
+        self.ui.display_first_diary_by_keyword(keyword)
+
+    def search_input_next(self):
         pass
 
 
@@ -344,7 +379,7 @@ class UIDiaryPane(tk.Frame):
         self.txt_cell.delete(0.0, tk.END)
 
     def insert_text(self, str_text):
-        self.txt_cell.insert(tk.END, str_text[:-1]) # Remove the tailing '\n'
+        self.txt_cell.insert(tk.END, str_text)
 
     def change_color(self):
         self.bg_color = tkcolorchooser.askcolor(self.bg_color)[-1]
@@ -663,9 +698,15 @@ class DBSQLite:
         else:
             return None
 
-    def get_diary_by_keyword(self, keyword):
+    def get_diary_by_keyword(self, keyword, fields):
         self.cur.execute("""
-            SELECT *
+            SELECT YEAR, MONTH, DAY,
+                P1SETTING, P1CONTENT, P2SETTING, P2CONTENT,
+                P3SETTING, P3CONTENT, P4SETTING, P4CONTENT,
+                P5SETTING, P5CONTENT, P6SETTING, P6CONTENT,
+                P7SETTING, P7CONTENT, P8SETTING, P8CONTENT,
+                WEATHER, TEMPERATURE, HUMIDITY, SLEEP_TIME, GET_UP_TIME,
+                FESTIVAL, COMMEMORATION, MEET_WITH, BIRTHDAY_OF
             FROM DIARY
             WHERE P1CONTENT LIKE ?
             OR P2CONTENT LIKE ?
@@ -686,7 +727,17 @@ class DBSQLite:
             '%' + keyword + '%', '%' + keyword + '%',
             '%' + keyword + '%', '%' + keyword + '%',
             '%' + keyword + '%', '%' + keyword + '%'))
-        return self.cur.fetchall()  # TODO：美化返回的结果
+        db_results = self.cur.fetchall()
+        if db_results:
+            dict_results = []
+            for result in db_results:
+                dict_result = {}
+                for i in range(len(result)):
+                    dict_result[fields[i]] = result[i]
+                dict_results.append(dict_result)
+            return dict_results
+        else:
+            return None
 
     def get_related_diary(self, date):
         self.cur.execute("""
