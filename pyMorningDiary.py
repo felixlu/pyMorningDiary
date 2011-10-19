@@ -1,23 +1,21 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 
-from datetime import date
-from datetime import timedelta
-import os
-import sqlite3
 import tkinter as tk
 import tkinter.colorchooser as tkcolorchooser
+import sqlite3
+import os
+import shutil
+from datetime import date
+from datetime import timedelta
 
-# date.today()
-# d.isoformat()
-# d.toordinal()
-# d.fromordinal()
 
 class UIDiary(tk.Frame):
 
-    def __init__(self, parent, db):
+    def __init__(self, parent):
         tk.Frame.__init__(self, parent)
-        self.db = db
         self.pack(side=tk.LEFT, expand=tk.YES, fill=tk.BOTH)
+        self.db = DBSQLite()
+        self.root = parent
 
         self.titles = self.db.get_pane_titles()
         self.colors = self.db.get_pane_colors()
@@ -42,12 +40,12 @@ class UIDiary(tk.Frame):
 
     def create_widgets(self):
 
-        self.bind_all("<Control-KeyPress-s>", self.save_diary)
+        self.bind_all("<Control-KeyPress-s>", self.save_current_diary)
 
         self.main_menu = UIDiaryMenu(self)
         self.main_menu.grid(row=0, column=0, columnspan=4, sticky='WE')
 
-        self.date_nav = UIDateNavigator(self, self)
+        self.date_nav = UIDateNavigator(self)
         self.date_nav.grid(row=1, column=0, columnspan=4, sticky='WE')
 
         self.diary_info = UIDiaryInfo(self, self.INFOS)
@@ -59,7 +57,7 @@ class UIDiary(tk.Frame):
         self.diary_panes = []
         for i in range(8):
             self.diary_panes.append(UIDiaryPane(self,
-                self.titles[i], self.colors[i], self))
+                self.titles[i], self.colors[i]))
             self.diary_panes[i].grid(row=self.POSITIONS[i][0],
                 column=self.POSITIONS[i][1])
 
@@ -71,10 +69,13 @@ class UIDiary(tk.Frame):
         if diary:
             self.display_diary(diary)
         else:
-            for i in range(len(self.diary_panes)):
-                self.diary_panes[i].clear_text()
-                self.diary_panes[i].set_title(self.titles[i])
-                self.diary_info.clear_infos()
+            self.clear_display()
+
+    def clear_display(self):
+        for i in range(len(self.diary_panes)):
+            self.diary_panes[i].clear_text()
+            self.diary_panes[i].set_title(self.titles[i])
+            self.diary_info.clear_infos()
 
     def display_diary(self, diary):
         self.display_panes(diary)
@@ -119,7 +120,6 @@ class UIDiary(tk.Frame):
     def get_diary_input(self):
         ddate = self.date_nav.get_date_input()
         diary = {'YEAR': ddate.year, 'MONTH': ddate.month, 'DAY': ddate.day}
-
         prefix = 'P'
         surfix_s = 'SETTING'
         surfix_c = 'CONTENT'
@@ -129,20 +129,30 @@ class UIDiary(tk.Frame):
             key_c = prefix + str(index) + surfix_c
             diary[key_s] = self.diary_panes[i].get_title()
             diary[key_c] = self.diary_panes[i].get_text()
-
         diary.update(self.diary_info.get_info_input())
-
         return diary
 
-    def save_diary(self, event):
+    def save_current_diary(self, event):
         diary = self.get_diary_input()
         self.db.save_diary(diary, self.DIARY_FIELDS)
+        
+    def delete_current_diary(self):
+        ddate = self.date_nav.get_date_input()
+        self.db.delete_diary_by_date(ddate)
+
+    def get_db_path(self):
+        return 'db_path'  # TODO
+
+    def get_backup_path(self, db_path):
+        return 'backup_path'  # TODO
+
 
 class UIDiaryMenu(tk.Frame):
 
     def __init__(self, parent):
         tk.Frame.__init__(self, parent, relief=tk.RAISED, bd=1)
         self.pack(fill=tk.X)
+        self.ui = parent
 
         self.FILE = '文件(F)'
         self.SAVE = '保存(S)    Ctrl + S'
@@ -177,9 +187,9 @@ class UIDiaryMenu(tk.Frame):
         self.btn_file.menu = tk.Menu(self.btn_file)
         self.btn_file.configure(menu=self.btn_file.menu)
         self.btn_file.menu.add_command(label=self.SAVE,
-            command=self.todo_method, underline=3)
+            command=self.save_current_diary, underline=3)
         self.btn_file.menu.add_command(label=self.DELETE,
-            command=self.todo_method, underline=3)
+            command=self.delete_current_diary, underline=3)
         self.btn_file.menu.add_command(label=self.BACKUPDB,
             command=self.backupdb, underline=7)
         self.btn_file.menu.add_command(label=self.EXIT, command=self.exit_app,
@@ -226,11 +236,20 @@ class UIDiaryMenu(tk.Frame):
         self.btn_help.menu.add_command(label=self.ABOUT,
             command=self.todo_method, underline=3)
 
+    def save_current_diary(self):
+        self.ui.save_current_diary()
+        
+    def delete_current_diary(self):
+        self.ui.delete_current_diary()
+        self.ui.clear_display()
+
     def backupdb(self):
-        pass
+        db_path = self.ui.get_db_path()
+        backup_path = self.ui.get_backup_path(db_path)
+        shutil.copy2(db_path, backup_path)
 
     def exit_app(self):
-        pass
+        self.ui.root.destroy()
 
     def todo_method(self):
         # TODO
@@ -239,10 +258,10 @@ class UIDiaryMenu(tk.Frame):
 
 class UIDateNavigator(tk.Frame):
 
-    def __init__(self, parent, ui):
+    def __init__(self, parent):
         tk.Frame.__init__(self, parent)
         self.pack(side=tk.LEFT, expand=tk.YES, fill=tk.BOTH)
-        self.ui = ui
+        self.ui = parent
 
         self.DATE = '  日期'
         self.YEAR = '年'
@@ -345,12 +364,12 @@ class UIDateNavigator(tk.Frame):
 
 class UIDiaryPane(tk.Frame):
 
-    def __init__(self, parent, title, bg_color, ui):
+    def __init__(self, parent, title, bg_color):
         tk.Frame.__init__(self, parent)
         self.pack(side=tk.LEFT, expand=tk.YES, fill=tk.BOTH)
         self.title = title
         self.bg_color = bg_color
-        self.ui = ui
+        self.ui = parent
 
         self.title_var = tk.StringVar()
         self.title_var.set(self.title)
@@ -752,10 +771,8 @@ class DBSQLite:
 def main():
     app = tk.Tk()
     app.title('晨间日记 - pyMorningDiary')
-    db = DBSQLite()
-    diary = UIDiary(app, db)
+    diary = UIDiary(app)
     app.mainloop()
-    del(db)
 
 if __name__ == '__main__':
     main()
